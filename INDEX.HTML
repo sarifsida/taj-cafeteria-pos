@@ -1,0 +1,1891 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Taj Cafeteria - POS, Kitchen KOT & Purchase Scanner</title>
+  <link rel="icon" type="image/png" href="logo.png" />
+  <link rel="apple-touch-icon" href="logo.png" />
+  <style>
+    :root {
+      --bg: #0f1115;
+      --card: #181c23;
+      --card-2: #202630;
+      --gold: #d4af37;
+      --gold-light: #f3d46e;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --danger: #ef4444;
+      --success: #22c55e;
+      --info: #3b82f6;
+      --border: #2e3644;
+      --card-radius: 10px;
+      --card-border-w: 1px;
+    }
+
+    body.theme-emerald {
+      --bg: #071712;
+      --card: #0d261e;
+      --card-2: #14362b;
+      --gold: #10b981;
+      --gold-light: #6ee7b7;
+      --border: #1f4d3e;
+    }
+    body.theme-ocean {
+      --bg: #081221;
+      --card: #0f1f38;
+      --card-2: #172d4f;
+      --gold: #38bdf8;
+      --gold-light: #bae6fd;
+      --border: #234270;
+    }
+    body.theme-sunset {
+      --bg: #1a0e0a;
+      --card: #291610;
+      --card-2: #3b2017;
+      --gold: #f97316;
+      --gold-light: #fdba74;
+      --border: #573023;
+    }
+    body.theme-royalpurple {
+      --bg: #130b1f;
+      --card: #1f1333;
+      --card-2: #2c1c47;
+      --gold: #c084fc;
+      --gold-light: #e9d5ff;
+      --border: #432b6b;
+    }
+    body.theme-daylight {
+      --bg: #f3f4f6;
+      --card: #ffffff;
+      --card-2: #f9fafb;
+      --gold: #b45309;
+      --gold-light: #92400e;
+      --text: #111827;
+      --muted: #4b5563;
+      --border: #d1d5db;
+    }
+
+    body.box-rounded {
+      --card-radius: 18px;
+      --card-border-w: 2px;
+    }
+    body.box-sharp {
+      --card-radius: 4px;
+      --card-border-w: 1px;
+    }
+
+    * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, sans-serif; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      padding-bottom: 40px;
+      transition: background 0.2s, color 0.2s;
+    }
+    header {
+      background: linear-gradient(135deg, var(--card), var(--card-2));
+      border-bottom: 2px solid var(--gold);
+      padding: 12px 18px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand img {
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      object-fit: cover;
+      border: 1px solid var(--gold);
+    }
+    .brand h1 {
+      margin: 0;
+      font-size: 20px;
+      color: var(--gold-light);
+      letter-spacing: 0.5px;
+    }
+    .brand p {
+      margin: 2px 0 0;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .top-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      align-items: center;
+    }
+    .btn {
+      border: 1px solid var(--border);
+      background: var(--card-2);
+      color: var(--text);
+      padding: 8px 13px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: 0.15s;
+    }
+    .btn:hover { opacity: 0.92; }
+    .btn:active { transform: scale(0.97); }
+    .btn-gold {
+      background: var(--gold);
+      color: #111;
+      border: none;
+    }
+    body.theme-daylight .btn-gold { color: #fff; }
+    .btn-success { background: var(--success); color: #052e16; border: none; }
+    .btn-danger { background: var(--danger); color: #fff; border: none; }
+    .btn-info { background: var(--info); color: #fff; border: none; }
+    .btn-sm { padding: 5px 10px; font-size: 12px; }
+    .btn-qty {
+      min-width: 32px;
+      height: 30px;
+      padding: 0 8px;
+      font-size: 16px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 10px 18px;
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+    }
+    .tab-btn {
+      padding: 9px 15px;
+      border-radius: 8px;
+      background: var(--card-2);
+      color: var(--muted);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .tab-btn.active {
+      background: var(--gold);
+      color: #111;
+      border-color: var(--gold);
+    }
+    body.theme-daylight .tab-btn.active { color: #fff; }
+
+    .container {
+      max-width: 1340px;
+      margin: 14px auto;
+      padding: 0 14px;
+    }
+    .grid-pos {
+      display: grid;
+      grid-template-columns: 1.55fr 1fr;
+      gap: 14px;
+    }
+    @media (max-width: 900px) {
+      .grid-pos { grid-template-columns: 1fr; }
+    }
+    .panel {
+      background: var(--card);
+      border: var(--card-border-w) solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .panel h2, .panel h3 {
+      margin: 0 0 10px;
+      color: var(--gold-light);
+      font-size: 17px;
+    }
+    .tables-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .table-chip {
+      padding: 8px 14px;
+      border-radius: 8px;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .table-chip.active {
+      background: var(--gold);
+      color: #111;
+      border-color: var(--gold);
+    }
+    body.theme-daylight .table-chip.active { color: #fff; }
+    .table-chip.has-items::after {
+      content: "•";
+      color: #22c55e;
+      font-size: 20px;
+      line-height: 0;
+      margin-left: 5px;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(175px, 1fr));
+      gap: 10px;
+      max-height: 70vh;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .menu-card {
+      background: var(--card-2);
+      border: var(--card-border-w) solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 6px;
+    }
+    .menu-card.in-cart {
+      border-color: var(--gold);
+      box-shadow: 0 0 0 1px var(--gold);
+    }
+    .menu-thumb {
+      width: 100%;
+      height: 82px;
+      border-radius: calc(var(--card-radius) - 2px);
+      background: var(--bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .menu-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .menu-card strong { font-size: 13px; color: var(--text); line-height: 1.3; }
+    .menu-price { color: var(--gold-light); font-weight: 700; font-size: 14px; }
+
+    .cart-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px dashed var(--border);
+      font-size: 14px;
+    }
+    .qty-box {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .input, select, textarea {
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      width: 100%;
+    }
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .badge-ok { background: rgba(34,197,94,0.2); color: #22c55e; }
+    .badge-warn { background: rgba(234,179,8,0.2); color: #eab308; }
+    .badge-err { background: rgba(239,68,68,0.2); color: #ef4444; }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+    .hidden { display: none !important; }
+    .list-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px 10px;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    table.data-table th, table.data-table td {
+      border: 1px solid var(--border);
+      padding: 8px;
+      text-align: left;
+    }
+    table.data-table th {
+      background: var(--card-2);
+      color: var(--gold-light);
+    }
+
+    .tv-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 14px;
+    }
+    .kot-ticket {
+      background: var(--card-2);
+      border: 2px solid var(--gold);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .kot-ticket.new-flash {
+      border-color: #22c55e;
+      box-shadow: 0 0 16px rgba(34, 197, 94, 0.45);
+    }
+    .kot-ticket-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px dashed var(--border);
+      padding-bottom: 8px;
+      margin-bottom: 8px;
+    }
+    .kot-ticket-table {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--gold-light);
+    }
+    .kot-ticket-items {
+      font-size: 18px;
+      line-height: 1.55;
+      font-weight: 700;
+      margin: 8px 0;
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.78);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      padding: 16px;
+    }
+    .modal-box {
+      background: var(--card);
+      border: 2px solid var(--gold);
+      border-radius: 14px;
+      padding: 20px;
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+    }
+    .modal-box h3 {
+      margin: 0 0 8px;
+      color: var(--gold-light);
+      font-size: 19px;
+    }
+    .modal-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    #printArea { display: none; }
+    @media print {
+      @page { margin: 2mm; }
+      body * { visibility: hidden; }
+      #printArea, #printArea * { visibility: visible; }
+      #printArea {
+        display: block !important;
+        position: absolute;
+        left: 0;
+        top: 0;
+        color: #000 !important;
+        background: #fff !important;
+        font-family: 'Courier New', monospace;
+        padding: 2mm;
+      }
+      body.print-58mm #printArea { width: 54mm; font-size: 12px; }
+      body.print-80mm #printArea { width: 74mm; font-size: 13px; }
+      body.print-a4 #printArea { width: 100%; max-width: 140mm; font-size: 14px; padding: 8mm; }
+    }
+  </style>
+</head>
+<body class="print-58mm">
+
+<header>
+  <div class="brand">
+    <img src="logo.png" alt="Taj" onerror="this.style.display='none'" />
+    <div>
+      <h1>TAJ CAFETERIA - POS & KOT</h1>
+      <p>Bundar Chowk, Near Hotel Jagat, Diu - 362520 | Mob: 9725772252</p>
+    </div>
+  </div>
+  <div class="top-controls">
+    <span id="roleBadge" class="badge badge-ok">MODE: OWNER</span>
+    <span id="syncStatus" class="badge badge-warn">Sheet: Ready</span>
+    <select id="printerDriverSelect" class="input" style="width:auto; padding:6px 9px; font-weight:600;" onchange="changePrinterProfile(this.value)" title="Select Printer Paper Size">
+      <option value="58mm">Printer: 58mm Thermal (MPT-II / POS-58)</option>
+      <option value="80mm">Printer: 80mm Thermal POS</option>
+      <option value="a4">Printer: A5 / A4 HP LaserJet</option>
+    </select>
+    <select id="voiceLangSelect" class="input" style="width:auto; padding:6px 9px; font-weight:600;" onchange="changeVoiceLang(this.value)" title="Audio Language">
+      <option value="gu-IN">Audio: ગુજરાતી</option>
+      <option value="hi-IN">Audio: हिन्दी</option>
+      <option value="en-IN">Audio: English</option>
+    </select>
+    <button class="btn btn-info btn-sm" onclick="testAudioAnnouncement()">Test Bell & Audio</button>
+    <button class="btn btn-gold btn-sm" id="switchRoleBtn" onclick="toggleDeviceRole()">Waiter View</button>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" id="tab-pos" onclick="switchTab('pos')">1. Order & Billing</button>
+  <button class="tab-btn" id="tab-kitchen" onclick="switchTab('kitchen')">2. Kitchen TV KOT (Live)</button>
+  <button class="tab-btn" id="tab-purchase" onclick="switchTab('purchase')">3. Purchase Bill OCR</button>
+  <button class="tab-btn" id="tab-history" onclick="switchTab('history')">4. Sales & Sync</button>
+  <button class="tab-btn" id="tab-settings" onclick="switchTab('settings')">5. Owner Controls, Theme & Menu</button>
+</div>
+
+<div class="container">
+
+  <div id="view-pos">
+    <div class="grid-pos">
+      <div>
+        <div class="panel">
+          <h2>Select Table / Counter</h2>
+          <div class="tables-grid" id="tablesList"></div>
+          <div class="row-2">
+            <div>
+              <label style="font-size:12px;color:var(--muted);">Order Type</label>
+              <select id="orderTypeSelect" onchange="state.orderType = this.value; saveState();">
+                <option value="Dine-In">Dine-In</option>
+                <option value="Parcel">Parcel</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;color:var(--muted);">Search Item (<span id="menuCountBadge">0</span> Items)</label>
+              <input class="input" id="menuSearch" placeholder="Search menu (Thepla, Sandwich, Sprite, Tea...)" oninput="renderMenu()" />
+            </div>
+          </div>
+          <h3>Menu Items (દરેક આઈટમ પર જ + / - અને ફોટો)</h3>
+          <div class="menu-grid" id="menuGrid"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <h2>Current Order — <span id="activeTableLabel" style="color:var(--gold-light);">YouTube</span></h2>
+          <div id="cartList" style="min-height:150px;"></div>
+
+          <div style="margin-top:12px; padding-top:10px; border-top:1px solid var(--border);">
+            <div style="display:flex; justify-content:space-between; font-size:20px; font-weight:800; margin-bottom:10px;">
+              <span>TOTAL:</span>
+              <span id="cartTotal" style="color:var(--gold-light);">₹0</span>
+            </div>
+
+            <div class="row-2">
+              <div>
+                <label style="font-size:12px;color:var(--muted);">Payment Mode</label>
+                <select id="paymentModeSelect">
+                  <option value="Cash">Cash</option>
+                  <option value="UPI">UPI</option>
+                  <option value="PhonePe">PhonePe</option>
+                  <option value="Card">Card</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div style="display:flex; align-items:flex-end;">
+                <button class="btn btn-danger" id="btnClearCart" style="width:100%;" onclick="clearCurrentCart()">Cancel / Clear Order</button>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px;">
+              <button class="btn btn-info" id="btnSendKot" style="padding:11px; font-size:14px;" onclick="sendKitchenKot()">Send Kitchen KOT</button>
+              <button class="btn btn-gold" id="btnPrintBill" style="padding:11px; font-size:14px;" onclick="completeAndPrintBill()">Bill & Thermal Print</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-kitchen" class="hidden">
+    <div class="panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+        <div>
+          <h2 style="margin:0;">KITCHEN LIVE KOT SCREEN (TV DISPLAY)</h2>
+          <div style="font-size:12px; color:var(--muted);" id="tvSyncClock">Auto-checking orders every 4 seconds...</div>
+        </div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn btn-success btn-sm" onclick="enableTvSoundNow()">Sound ON (TV પર ચાલુ કરો)</button>
+          <button class="btn btn-info btn-sm" onclick="fetchLiveKotsFromSheet(true)">Refresh Now</button>
+          <button class="btn btn-danger btn-sm" onclick="clearAllKitchenKots()">Clear All Done KOT</button>
+        </div>
+      </div>
+      <div class="tv-grid" id="kitchenKotGrid"></div>
+    </div>
+  </div>
+
+  <div id="view-purchase" class="hidden">
+    <div class="panel">
+      <h2>ખરીદ બિલ સ્કેનર (Printed / હાથેથી લખેલ ગુજરાતી / WhatsApp બિલ ફોટો)</h2>
+      <div class="row-2">
+        <div>
+          <label style="font-size:12px;color:var(--muted);">1. બિલનો ફોટો પસંદ કરો (Camera / WhatsApp Gallery)</label>
+          <input type="file" id="billImageInput" accept="image/*" capture="environment" class="input" onchange="handleBillImageUpload(event)" />
+        </div>
+        <div style="display:flex; align-items:flex-end; gap:8px;">
+          <button class="btn btn-gold" style="width:100%;" onclick="runOcrOnUploadedBill()">Auto Scan Bill (ગુજરાતી + English OCR)</button>
+        </div>
+      </div>
+
+      <div id="ocrProgressBox" style="font-size:13px; color:var(--gold-light); margin:8px 0;"></div>
+
+      <div class="grid-pos" style="margin-top:12px;">
+        <div>
+          <img id="billPreviewImg" alt="Bill Preview" style="max-width:100%; max-height:320px; border-radius:8px; border:1px solid var(--border); display:none;" />
+          <div style="margin-top:8px;">
+            <label style="font-size:12px;color:var(--muted);">સ્કેન થયેલ કાચું લખાણ (Raw OCR Text)</label>
+            <textarea id="ocrRawText" rows="5" placeholder="ફોટો અપલોડ કર્યા પછી અહીં બિલનું લખાણ દેખાશે..."></textarea>
+          </div>
+        </div>
+
+        <div>
+          <h3>ઓળખાયેલ ખરીદ બિલની વિગત (ચકાસીને Save કરો)</h3>
+          <div class="row-2">
+            <div>
+              <label style="font-size:12px;color:var(--muted);">તારીખ (Date)</label>
+              <input class="input" id="purDate" />
+            </div>
+            <div>
+              <label style="font-size:12px;color:var(--muted);">વેપારી / દુકાનનું નામ (Supplier)</label>
+              <input class="input" id="purSupplier" placeholder="દા.ત. પટેલ પ્રોવિઝન / શાકભાજી" />
+            </div>
+          </div>
+          <div style="margin-bottom:10px;">
+            <label style="font-size:12px;color:var(--muted);">ખરીદેલ માલની વિગત (Items)</label>
+            <textarea id="purItems" rows="3" placeholder="દા.ત. દૂધ, ખાંડ, ચીઝ, બ્રેડ..."></textarea>
+          </div>
+          <div class="row-2">
+            <div>
+              <label style="font-size:12px;color:var(--muted);">કુલ બિલ રકમ (Total ₹)</label>
+              <input class="input" id="purTotal" type="number" placeholder="0" />
+            </div>
+            <div>
+              <label style="font-size:12px;color:var(--muted);">પેમેન્ટ રીત</label>
+              <select id="purPayment">
+                <option value="Cash">Cash</option>
+                <option value="UPI">UPI</option>
+                <option value="Credit / બાકી">Credit / બાકી</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-success" style="width:100%; margin-top:6px;" onclick="savePurchaseBill()">Save Purchase Bill & Send to Google Sheet</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>સેવ થયેલા ખરીદ બિલ (Purchase History)</h3>
+      <div style="overflow-x:auto;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Supplier</th>
+              <th>Items</th>
+              <th>Total (₹)</th>
+              <th>Payment</th>
+              <th>Sync</th>
+            </tr>
+          </thead>
+          <tbody id="purchaseTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-history" class="hidden">
+    <div class="panel">
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <h2>Billing History & Google Sheet Sync</h2>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-info" onclick="retryUnsyncedBills()">Retry Failed Sheet Sync</button>
+          <button class="btn btn-gold" onclick="exportBillsCsv()">Download Excel/CSV Backup</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto; margin-top:10px;">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Bill No</th>
+              <th>Date/Time</th>
+              <th>Table / Type</th>
+              <th>Items</th>
+              <th>Total (₹)</th>
+              <th>Mode</th>
+              <th>Google Sheet Status</th>
+            </tr>
+          </thead>
+          <tbody id="salesHistoryBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-settings" class="hidden">
+    <div class="grid-pos">
+      <div>
+        <div class="panel">
+          <h2>દર મહિને બદલી શકાય તેવી Theme અને Box Design</h2>
+          <p style="font-size:12px; color:var(--muted); margin-top:0;">
+            સોફ્ટવેરના બિલિંગ કે KOT માં કોઈ ફેરફાર કર્યા વગર ફક્ત રંગ અને મેનુ બોક્સની ડિઝાઇન બદલો.
+          </p>
+          <div class="row-2">
+            <div>
+              <label style="font-size:12px;color:var(--muted);">Color Theme (રંગ થીમ)</label>
+              <select id="themeSelect" onchange="changeThemeSetting(this.value)">
+                <option value="auto">Auto (દર મહિને આપમેળે બદલાય)</option>
+                <option value="gold">1. Taj Royal Gold (Dark)</option>
+                <option value="emerald">2. Emerald Green (Fresh)</option>
+                <option value="ocean">3. Ocean Blue (Cool)</option>
+                <option value="sunset">4. Sunset Orange (Warm)</option>
+                <option value="royalpurple">5. Royal Purple (Premium)</option>
+                <option value="daylight">6. Classic Daylight (White)</option>
+              </select>
+            </div>
+            <div>
+              <label style="font-size:12px;color:var(--muted);">Menu Box Design (બોક્સ ડિઝાઇન)</label>
+              <select id="boxDesignSelect" onchange="changeBoxDesign(this.value)">
+                <option value="default">Standard Card Box</option>
+                <option value="rounded">Modern Rounded Box (ગોળ ખૂણા)</option>
+                <option value="sharp">Classic Sharp Border Box</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Laptop Owner ON / OFF Controls (વેઇટર કંટ્રોલ)</h2>
+          <div class="toggle-row">
+            <div><strong>1. Waiter: ઓર્ડર લેવો (Add Items)</strong></div>
+            <button class="btn btn-sm" id="tog-allowOrder" onclick="togglePerm('allowOrder')"></button>
+          </div>
+          <div class="toggle-row">
+            <div><strong>2. Waiter: આઈટમ કેન્સલ / + - ફેરફાર</strong></div>
+            <button class="btn btn-sm" id="tog-allowCancelEdit" onclick="togglePerm('allowCancelEdit')"></button>
+          </div>
+          <div class="toggle-row">
+            <div><strong>3. Waiter: KOT સેન્ડ કરવો</strong></div>
+            <button class="btn btn-sm" id="tog-allowKot" onclick="togglePerm('allowKot')"></button>
+          </div>
+          <div class="toggle-row">
+            <div><strong>4. Waiter: બિલ પ્રિન્ટ કરવું</strong></div>
+            <button class="btn btn-sm" id="tog-allowPrint" onclick="togglePerm('allowPrint')"></button>
+          </div>
+          <div class="toggle-row">
+            <div><strong>5. Waiter: Admin Settings</strong></div>
+            <button class="btn btn-sm" id="tog-allowSettings" onclick="togglePerm('allowSettings')"></button>
+          </div>
+
+          <div style="margin-top:12px;">
+            <label style="font-size:12px;color:var(--muted);">Owner Unlock PIN</label>
+            <div style="display:flex; gap:8px; margin-top:4px;">
+              <input class="input" id="ownerPinInput" maxlength="6" placeholder="1234" />
+              <button class="btn btn-gold" onclick="saveOwnerPin()">Save PIN</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel">
+          <h2>Google Sheet Web App URL (TV & Tablet Sync)</h2>
+          <input class="input" id="sheetUrlInput" />
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button class="btn btn-gold" onclick="saveSheetUrl()">Save URL</button>
+            <button class="btn btn-info" onclick="testGoogleSheetConnection()">Test Sheet Connection</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Menu & Photo Manager</h2>
+          <div class="row-2">
+            <input class="input" id="newMenuName" placeholder="Item Name (દા.ત. Thums Up Tin)" />
+            <input class="input" id="newMenuPrice" type="number" placeholder="Price ₹ (દા.ત. 50)" />
+          </div>
+          <div class="row-2">
+            <select id="newMenuCat">
+              <option value="drink">Category: Cold Drink / Water</option>
+              <option value="pizza">Category: Pizza</option>
+              <option value="burger">Category: Burger / Sandwich</option>
+              <option value="fries">Category: Fries / Snacks</option>
+              <option value="tea">Category: Tea / Coffee</option>
+              <option value="shake">Category: Shake</option>
+              <option value="breakfast">Category: Breakfast</option>
+            </select>
+            <input type="file" id="newMenuPhoto" accept="image/*" class="input" />
+          </div>
+          <button class="btn btn-success" style="width:100%; margin-bottom:8px;" onclick="addMenuItem()">+ Add Menu Item</button>
+          <button class="btn btn-gold" style="width:100%; margin-bottom:10px;" onclick="resetFullTajMenu()">Load All 98 Taj Cafeteria Items</button>
+          <div id="manageMenuList" style="max-height:240px; overflow-y:auto;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div id="kotPrintModal" class="modal-backdrop hidden">
+  <div class="modal-box">
+    <h3>KOT કિચનમાં મોકલાઈ ગયો!</h3>
+    <p id="kotModalDetails" style="font-size:14px; color:var(--text); margin:8px 0;"></p>
+    <p style="font-size:14px; color:var(--gold-light); font-weight:700; margin:10px 0;">
+      શું તમારે KOT સ્લિપ પ્રિન્ટ કરવી છે?<br/>(લાઈટ ન હોય તો Yes દબાવીને કિચનમાં આપો)
+    </p>
+    <div class="modal-actions">
+      <button class="btn btn-gold" style="font-size:15px; padding:11px;" onclick="confirmKotPrint(true)">YES (Print KOT)</button>
+      <button class="btn" style="font-size:15px; padding:11px;" onclick="confirmKotPrint(false)">NO (Skip Print)</button>
+    </div>
+  </div>
+</div>
+
+<div id="printArea"></div>
+
+<script>
+  const DEFAULT_TAJ_SHEET_URL = "https://script.google.com/macros/s/AKfycbz4p_C6u960Iwta5LM4z69MDUEBV2jL_Q6JEIFWrZwbVSrR8dDBisBkHIsJvMGsX022w/exec";
+
+  function createTingBellDataUri() {
+    const sampleRate = 16000;
+    const duration = 0.85;
+    const numSamples = Math.floor(sampleRate * duration);
+    const buffer = new ArrayBuffer(44 + numSamples * 2);
+    const view = new DataView(buffer);
+
+    function writeStr(offset, str) {
+      for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+    }
+    writeStr(0, "RIFF");
+    view.setUint32(4, 36 + numSamples * 2, true);
+    writeStr(8, "WAVE");
+    writeStr(12, "fmt ");
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, 1, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, sampleRate * 2, true);
+    view.setUint16(32, 2, true);
+    view.setUint16(34, 16, true);
+    writeStr(36, "data");
+    view.setUint32(40, numSamples * 2, true);
+
+    for (let i = 0; i < numSamples; i++) {
+      const t = i / sampleRate;
+      let sample = 0;
+      if (t < 0.42) {
+        const env = Math.exp(-t * 9);
+        sample = env * (0.65 * Math.sin(2 * Math.PI * 1046.5 * t) + 0.35 * Math.sin(2 * Math.PI * 2093 * t));
+      } else {
+        const t2 = t - 0.42;
+        const env2 = Math.exp(-t2 * 8);
+        sample = env2 * (0.65 * Math.sin(2 * Math.PI * 1318.5 * t2) + 0.35 * Math.sin(2 * Math.PI * 2637 * t2));
+      }
+      const s = Math.max(-1, Math.min(1, sample));
+      view.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+    }
+
+    let binary = "";
+    const bytes = new Uint8Array(buffer);
+    for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+    return "data:audio/wav;base64," + btoa(binary);
+  }
+
+  const TING_BELL_URI = createTingBellDataUri();
+  let bellAudioObj = null;
+
+  function playTvTingBell() {
+    try {
+      if (!bellAudioObj) bellAudioObj = new Audio(TING_BELL_URI);
+      bellAudioObj.currentTime = 0;
+      const p = bellAudioObj.play();
+      if (p && p.catch) p.catch(() => {});
+    } catch (e) {}
+  }
+
+  function enableTvSoundNow() {
+    playTvTingBell();
+    speakAnnouncement("કિચન ટીવી ઓડિયો ચાલુ થઈ ગયો છે");
+  }
+
+  function makeCategorySvg(cat, labelText) {
+    const map = {
+      drink: { bg1: "#1e3a8a", bg2: "#dc2626", icon: "🥤", tag: "COLD DRINK" },
+      water: { bg1: "#0284c7", bg2: "#38bdf8", icon: "💧", tag: "WATER" },
+      pizza: { bg1: "#9a3412", bg2: "#ea580c", icon: "🍕", tag: "PIZZA" },
+      burger: { bg1: "#854d0e", bg2: "#ca8a04", icon: "🍔", tag: "BURGER / SANDWICH" },
+      fries: { bg1: "#a16207", bg2: "#eab308", icon: "🍟", tag: "FRIES & SNACKS" },
+      tea: { bg1: "#78350f", bg2: "#b45309", icon: "☕", tag: "TEA & COFFEE" },
+      shake: { bg1: "#831843", bg2: "#db2777", icon: "🍨", tag: "THICK SHAKE" },
+      breakfast: { bg1: "#166534", bg2: "#16a34a", icon: "🍽️", tag: "BREAKFAST" },
+      combo: { bg1: "#713f12", bg2: "#d4af37", icon: "👑", tag: "TAJ SPECIAL" }
+    };
+    const c = map[cat] || map.combo;
+    const shortTitle = (labelText || "").replace(/</g, "").slice(0, 22);
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="120" viewBox="0 0 240 120">
+      <defs>
+        <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="${c.bg1}"/>
+          <stop offset="100%" stop-color="${c.bg2}"/>
+        </linearGradient>
+      </defs>
+      <rect width="240" height="120" fill="url(#g)"/>
+      <circle cx="205" cy="25" r="42" fill="rgba(255,255,255,0.12)"/>
+      <text x="16" y="48" font-size="32">${c.icon}</text>
+      <text x="62" y="38" fill="#fef08a" font-family="Arial,sans-serif" font-size="11" font-weight="bold">${c.tag}</text>
+      <text x="16" y="88" fill="#ffffff" font-family="Arial,sans-serif" font-size="14" font-weight="bold">${shortTitle}</text>
+      <text x="16" y="106" fill="rgba(255,255,255,0.8)" font-family="Arial,sans-serif" font-size="10">TAJ CAFETERIA • DIU</text>
+    </svg>`;
+    return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
+  }
+
+  const FULL_TAJ_MENU = [
+    { id: 1, name: "Thums Up Tin (થમ્સ અપ ટીન)", price: 50, cat: "drink" },
+    { id: 2, name: "Thums Up Bottle (થમ્સ અપ બોટલ)", price: 25, cat: "drink" },
+    { id: 3, name: "Fanta Tin (ફેન્ટા ટીન)", price: 50, cat: "drink" },
+    { id: 4, name: "Fanta Bottle (ફેન્ટા બોટલ)", price: 25, cat: "drink" },
+    { id: 5, name: "Sprite Tin (સ્પ્રાઈટ ટીન)", price: 50, cat: "drink" },
+    { id: 6, name: "Sprite Bottle (સ્પ્રાઈટ બોટલ)", price: 25, cat: "drink" },
+    { id: 7, name: "Coca-Cola Tin (કોકા-કોલા ટીન)", price: 50, cat: "drink" },
+    { id: 8, name: "Coca-Cola Bottle (કોકા-કોલા બોટલ)", price: 25, cat: "drink" },
+    { id: 9, name: "Diet Coca-Cola Tin (ડાયટ કોકા-કોલા ટીન)", price: 50, cat: "drink" },
+    { id: 10, name: "Diet Coca-Cola Bottle (ડાયટ કોકા-કોલા બોટલ)", price: 25, cat: "drink" },
+    { id: 11, name: "Coca-Cola FIFA Tin (કોકા-કોલા ફીફા ટીન)", price: 50, cat: "drink" },
+    { id: 12, name: "Coca-Cola FIFA Bottle (કોકા-કોલા ફીફા બોટલ)", price: 25, cat: "drink" },
+    { id: 13, name: "Water Bottle (વોટર બોટલ)", price: 20, cat: "water" },
+    { id: 101, name: "Taj Special Pizza Large (Fries+Nachos+Pizza+Cold Coffee)", price: 755, cat: "combo" },
+    { id: 102, name: "Taj Special Sandwich Jambo (Crisps+Veg Cheese Grilled+Club+Cold Coffee)", price: 555, cat: "combo" },
+    { id: 103, name: "Taj Special Sandwich Roll (Bread Slices Roll+Cheese+Veg+Cold Coffee+Crisps)", price: 755, cat: "combo" },
+    { id: 104, name: "Taj Special Bread Slices Pizza + Cold Coffee (2 Piece)", price: 355, cat: "combo" },
+    { id: 105, name: "Taj Special Katori Burger + Cold Coffee (2 Piece)", price: 355, cat: "combo" },
+    { id: 106, name: "Taj Special French Fries + Cold Coffee (Fries+Vegetables+Cheese)", price: 355, cat: "combo" },
+    { id: 107, name: "Burger Special Combo (Veggie Burger+Garlic Bread+Virgin Mojito)", price: 355, cat: "combo" },
+    { id: 108, name: "Sandwich Combo (Cheese Chutney+Club Sandwich+Garlic Bread+Virgin Mojito)", price: 455, cat: "combo" },
+    { id: 109, name: "Pizza Combo (Margarita Pizza+Peppy Paneer Pizza+Fries+Virgin Mojito)", price: 555, cat: "combo" },
+    { id: 201, name: "Tea (ચા)", price: 30, cat: "tea" },
+    { id: 202, name: "Black Tea (બ્લેક ટી)", price: 20, cat: "tea" },
+    { id: 203, name: "Green Tea (ગ્રીન ટી)", price: 30, cat: "tea" },
+    { id: 204, name: "Masala Tea (મસાલા ટી)", price: 40, cat: "tea" },
+    { id: 205, name: "Bhajiya (ભજીયા)", price: 60, cat: "breakfast" },
+    { id: 206, name: "Khaman (ખમણ)", price: 60, cat: "breakfast" },
+    { id: 207, name: "Aloo Paratha (આલુ પરાઠા)", price: 110, cat: "breakfast" },
+    { id: 208, name: "Thepla (3 Piece) (થેપલા)", price: 70, cat: "breakfast" },
+    { id: 209, name: "Poha (પોહા)", price: 60, cat: "breakfast" },
+    { id: 210, name: "Bateta Vada (બટેટા વડા)", price: 70, cat: "breakfast" },
+    { id: 211, name: "Idli (ઈડલી)", price: 60, cat: "breakfast" },
+    { id: 212, name: "Bread Butter Jam (બ્રેડ બટર જામ)", price: 80, cat: "breakfast" },
+    { id: 213, name: "Coffee (Morning)", price: 50, cat: "tea" },
+    { id: 214, name: "Curd (દહીં)", price: 30, cat: "breakfast" },
+    { id: 301, name: "Hot Coffee (હોટ કોફી)", price: 50, cat: "tea" },
+    { id: 302, name: "Black Lemon Coffee (બ્લેક લેમન કોફી)", price: 80, cat: "tea" },
+    { id: 303, name: "Cold Coffee (કોલ્ડ કોફી)", price: 100, cat: "shake" },
+    { id: 304, name: "Cappuccino (કેપેચિનો)", price: 100, cat: "tea" },
+    { id: 305, name: "Espresso (એસ્પ્રેસો)", price: 100, cat: "tea" },
+    { id: 306, name: "Kit Kat Shake (કીટ કેટ શેક)", price: 180, cat: "shake" },
+    { id: 307, name: "Oreo Shake (ઓરીયો શેક)", price: 180, cat: "shake" },
+    { id: 308, name: "Dry Fruit Shake (ડ્રાય ફ્રુટ શેક)", price: 200, cat: "shake" },
+    { id: 309, name: "Strawberry Shake (સ્ટ્રોબેરી શેક)", price: 180, cat: "shake" },
+    { id: 310, name: "Cookies & Cream Shake (કુકીસ એન્ડ ક્રીમ શેક)", price: 180, cat: "shake" },
+    { id: 401, name: "Standard Fries (સ્ટાન્ડર્ડ ફ્રાઈસ)", price: 90, cat: "fries" },
+    { id: 402, name: "Garlic Fries (ગાર્લીક ફ્રાઈસ)", price: 100, cat: "fries" },
+    { id: 403, name: "Cheese Fries (ચીઝ ફ્રાઈસ)", price: 110, cat: "fries" },
+    { id: 404, name: "Peri Peri Fries (પેરી પેરી ફ્રાઈસ)", price: 120, cat: "fries" },
+    { id: 405, name: "Taj Sp. Jumbo Fries (તાજ સ્પેશીયલ જમ્બો ફ્રાઈસ)", price: 199, cat: "fries" },
+    { id: 406, name: "Veg. Frankie (વેજ. ફ્રેન્કી)", price: 110, cat: "burger" },
+    { id: 407, name: "Veg. Mayo Frankie (વેજ. માયો ફ્રેન્કી)", price: 140, cat: "burger" },
+    { id: 408, name: "Paneer Peri Peri Frankie (પનીર પેરી પેરી ફ્રેન્કી)", price: 160, cat: "burger" },
+    { id: 409, name: "Plain Maggie (પ્લેન મેગી)", price: 110, cat: "fries" },
+    { id: 410, name: "Masala Maggie (મસાલા મેગી)", price: 150, cat: "fries" },
+    { id: 411, name: "Cheese Maggie (ચીઝ મેગી)", price: 160, cat: "fries" },
+    { id: 412, name: "Taj Special Maggie (તાજ સ્પેશીયલ મેગી)", price: 180, cat: "fries" },
+    { id: 413, name: "Garlic Bread (3 pis) (ગાર્લિક બ્રેડ)", price: 100, cat: "fries" },
+    { id: 414, name: "Mayo Garlic Bread (માયો ગાર્લિક બ્રેડ)", price: 130, cat: "fries" },
+    { id: 415, name: "Peri Peri Garlic Bread (પેરી પેરી ગાર્લિક બ્રેડ)", price: 140, cat: "fries" },
+    { id: 416, name: "Cheese Garlic Bread (ચીઝ ગાર્લિક બ્રેડ)", price: 140, cat: "fries" },
+    { id: 417, name: "Taj Sp. Garlic Bread (4 pis) (તાજ સ્પે. ગાર્લિક બ્રેડ)", price: 180, cat: "fries" },
+    { id: 418, name: "Veggie Nuggets (6 pis) (વેજ. નગેટ્સ)", price: 100, cat: "fries" },
+    { id: 419, name: "Potato Bite (6 Pis) (પોટેટો બાઈટ)", price: 100, cat: "fries" },
+    { id: 420, name: "Smiley (સ્માઈલી)", price: 100, cat: "fries" },
+    { id: 421, name: "Spring Potato (સ્પ્રિંગ પોટેટો)", price: 100, cat: "fries" },
+    { id: 501, name: "Aloo tiki Burger (આલુ ટીકી બર્ગર)", price: 110, cat: "burger" },
+    { id: 502, name: "Mayo Cheese Burger (માયો ચીઝ બર્ગર)", price: 140, cat: "burger" },
+    { id: 503, name: "Veggy Burger (વેજી. બર્ગર)", price: 160, cat: "burger" },
+    { id: 504, name: "Paneer Peri Burger (પનીર પેરી બર્ગર)", price: 190, cat: "burger" },
+    { id: 505, name: "Double Cheese Burger (ડબલ ચીઝ બર્ગર)", price: 190, cat: "burger" },
+    { id: 506, name: "Veg. Steam Momos (6Pcs) (વેજ. સ્ટીમ મોમોસ)", price: 90, cat: "fries" },
+    { id: 507, name: "Veg. Fry Momos (6Pcs) (વેજ. ફ્રાય મોમોસ)", price: 120, cat: "fries" },
+    { id: 508, name: "Paneer Tikka Momos (6Pcs) (પનીર ટીક્કા મોમોસ)", price: 140, cat: "fries" },
+    { id: 509, name: "White Sauce Pasta (વ્હાઈટ સોસ પાસ્તા)", price: 140, cat: "fries" },
+    { id: 510, name: "Red Sauce Pasta (રેડ સોસ પાસ્તા)", price: 140, cat: "fries" },
+    { id: 511, name: "Cheese Loaded Pasta (ચીઝ લોડેડ પાસ્તા)", price: 160, cat: "fries" },
+    { id: 512, name: "Veggy Pasta (વેજી પાસ્તા)", price: 170, cat: "fries" },
+    { id: 513, name: "Veg. Cheese Delight S. (વેજ ચીઝ ડીલાઈટ સેન્ડવીચ)", price: 110, cat: "burger" },
+    { id: 514, name: "Veg. Cheese Grilled S. (વેજ ચીઝ ગ્રીલ્ડ સેન્ડવીચ)", price: 120, cat: "burger" },
+    { id: 515, name: "Veg. Cheese Club S. (વેજ ચીઝ ક્લબ સેન્ડવીચ)", price: 160, cat: "burger" },
+    { id: 516, name: "Paneer Peri Peri S. (પનીર પેરી પેરી સેન્ડવીચ)", price: 190, cat: "burger" },
+    { id: 517, name: "Double Cheese S. (ડબલ ચીઝ સેન્ડવીચ)", price: 240, cat: "burger" },
+    { id: 518, name: "Taj Special Jumbo S. (તાજ સ્પેશીયલ જમ્બો સેન્ડવીચ)", price: 260, cat: "burger" },
+    { id: 519, name: "Queen Margherita Pizza (Medium)", price: 180, cat: "pizza" },
+    { id: 520, name: "Queen Margherita Pizza (Large)", price: 240, cat: "pizza" },
+    { id: 521, name: "Mexican Green Pizza (Medium)", price: 210, cat: "pizza" },
+    { id: 522, name: "Mexican Green Pizza (Large)", price: 310, cat: "pizza" },
+    { id: 523, name: "Peppy Paneer Pizza (Medium)", price: 220, cat: "pizza" },
+    { id: 524, name: "Peppy Paneer Pizza (Large)", price: 320, cat: "pizza" },
+    { id: 525, name: "Fries Pizza (Medium)", price: 180, cat: "pizza" },
+    { id: 526, name: "Fries Pizza (Large)", price: 240, cat: "pizza" },
+    { id: 527, name: "Cheese Corn Pizza (Medium)", price: 180, cat: "pizza" },
+    { id: 528, name: "Cheese Corn Pizza (Large)", price: 240, cat: "pizza" },
+    { id: 529, name: "Veg. Loaded Pizza (Medium)", price: 210, cat: "pizza" },
+    { id: 530, name: "Veg. Loaded Pizza (Large)", price: 310, cat: "pizza" },
+    { id: 531, name: "Taj Special Family Pizza (Any Medium 2 Pizza + Standard Fries)", price: 480, cat: "pizza" },
+    { id: 532, name: "Extra Cheese (એક્સ્ટ્રા ચીઝ)", price: 50, cat: "pizza" }
+  ];
+
+  const DEFAULT_STATE = {
+    role: "owner",
+    ownerPin: "1234",
+    voiceLang: "gu-IN",
+    printerProfile: "58mm",
+    themeChoice: "auto",
+    boxDesign: "default",
+    sheetUrl: DEFAULT_TAJ_SHEET_URL,
+    permissions: {
+      allowOrder: true,
+      allowCancelEdit: true,
+      allowKot: true,
+      allowPrint: true,
+      allowSettings: false
+    },
+    tables: ["YouTube", "WhatsApp", "Twitter", "Snapchat", "Instagram", "Facebook", "Parcel"],
+    selectedTable: "YouTube",
+    orderType: "Dine-In",
+    menu: FULL_TAJ_MENU,
+    carts: {},
+    activeKots: [],
+    bills: [],
+    purchases: []
+  };
+
+  let state = loadState();
+  let pendingKotSlipData = null;
+  let lastSeenKotSignature = "";
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem("taj_cafeteria_pos_v6") || localStorage.getItem("taj_cafeteria_pos_v5");
+      if (!raw) return JSON.parse(JSON.stringify(DEFAULT_STATE));
+      const parsed = JSON.parse(raw);
+      return {
+        ...JSON.parse(JSON.stringify(DEFAULT_STATE)),
+        ...parsed,
+        menu: Array.isArray(parsed.menu) && parsed.menu.length ? parsed.menu : JSON.parse(JSON.stringify(FULL_TAJ_MENU)),
+        tables: Array.isArray(parsed.tables) && parsed.tables.length ? parsed.tables : JSON.parse(JSON.stringify(DEFAULT_STATE.tables)),
+        permissions: { ...DEFAULT_STATE.permissions, ...(parsed.permissions || {}) },
+        activeKots: Array.isArray(parsed.activeKots) ? parsed.activeKots : []
+      };
+    } catch (e) {
+      return JSON.parse(JSON.stringify(DEFAULT_STATE));
+    }
+  }
+
+  function saveState() {
+    try {
+      localStorage.setItem("taj_cafeteria_pos_v6", JSON.stringify(state));
+    } catch (e) {
+      alert("Storage ભરાઈ ગયું છે, કૃપા કરીને નાના સાઈઝના ફોટા વાપરો.");
+    }
+  }
+
+  function applyVisualTheme() {
+    const monthlyOrder = ["gold", "emerald", "ocean", "sunset", "royalpurple", "daylight"];
+    let activeTheme = state.themeChoice || "auto";
+    if (activeTheme === "auto") {
+      const monthIdx = new Date().getMonth();
+      activeTheme = monthlyOrder[monthIdx % monthlyOrder.length];
+    }
+    document.body.classList.remove("theme-emerald", "theme-ocean", "theme-sunset", "theme-royalpurple", "theme-daylight");
+    if (activeTheme !== "gold") document.body.classList.add("theme-" + activeTheme);
+
+    document.body.classList.remove("box-rounded", "box-sharp");
+    if (state.boxDesign === "rounded") document.body.classList.add("box-rounded");
+    if (state.boxDesign === "sharp") document.body.classList.add("box-sharp");
+
+    document.body.classList.remove("print-58mm", "print-80mm", "print-a4");
+    document.body.classList.add("print-" + (state.printerProfile || "58mm"));
+  }
+
+  function changeThemeSetting(val) {
+    state.themeChoice = val;
+    saveState();
+    applyVisualTheme();
+  }
+
+  function changeBoxDesign(val) {
+    state.boxDesign = val;
+    saveState();
+    applyVisualTheme();
+  }
+
+  function changePrinterProfile(val) {
+    state.printerProfile = val;
+    saveState();
+    applyVisualTheme();
+  }
+
+  function resetFullTajMenu() {
+    if (!confirm("બધા 98 મેન્યુ આઈટમ્સ (Cold Drinks + Full Menu) લોડ કરવા છે?")) return;
+    state.menu = JSON.parse(JSON.stringify(FULL_TAJ_MENU));
+    saveState();
+    renderAll();
+    alert("બધા 98 મેન્યુ આઈટમ્સ લોડ થઈ ગયા છે!");
+  }
+
+  function changeVoiceLang(lang) {
+    state.voiceLang = lang;
+    saveState();
+    testAudioAnnouncement();
+  }
+
+  function buildKotAnnouncement(table, cartItems) {
+    const itemList = cartItems.map(c => `${c.name} ${c.qty}`).join(", ");
+    if (state.voiceLang === "hi-IN") return `नया ऑर्डर, टेबल ${table}, आइटम: ${itemList}`;
+    if (state.voiceLang === "en-IN") return `New order for table ${table}. Items: ${itemList}`;
+    return `નવો ઓર્ડર, ટેબલ ${table}, આઈટમ: ${itemList}`;
+  }
+
+  function buildBillAnnouncement(total, payment) {
+    if (state.voiceLang === "hi-IN") return `बिल तैयार है, कुल ${total} रुपये, पेमेंट ${payment}`;
+    if (state.voiceLang === "en-IN") return `Bill ready. Total ${total} rupees, paid by ${payment}`;
+    return `બિલ તૈયાર છે, કુલ ${total} રૂપિયા, પેમેન્ટ ${payment}`;
+  }
+
+  function speakAnnouncement(text) {
+    try {
+      if (!("speechSynthesis" in window)) return;
+      const u = new SpeechSynthesisUtterance(text);
+      const targetLang = state.voiceLang || "gu-IN";
+      u.lang = targetLang;
+      const voices = window.speechSynthesis.getVoices();
+      const matched = voices.find(v => v.lang && v.lang.toLowerCase().startsWith(targetLang.slice(0, 2).toLowerCase()));
+      if (matched) u.voice = matched;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(u);
+    } catch (e) {}
+  }
+
+  function testAudioAnnouncement() {
+    playTvTingBell();
+    const sampleItems = [{ name: "Thepla", qty: 1 }, { name: "Sprite Tin", qty: 1 }];
+    setTimeout(() => speakAnnouncement(buildKotAnnouncement(state.selectedTable, sampleItems)), 450);
+  }
+
+  function switchTab(tabName) {
+    if (tabName === "settings" && state.role === "waiter" && !state.permissions.allowSettings) {
+      alert("વેઇટર મોડમાં સેટિંગ્સ બંધ છે. Owner PIN થી અનલોક કરો.");
+      return;
+    }
+    ["pos", "kitchen", "purchase", "history", "settings"].forEach(t => {
+      document.getElementById("view-" + t).classList.toggle("hidden", t !== tabName);
+      document.getElementById("tab-" + t).classList.toggle("active", t === tabName);
+    });
+    if (tabName === "kitchen") fetchLiveKotsFromSheet(false);
+    renderAll();
+  }
+
+  function toggleDeviceRole() {
+    if (state.role === "owner") {
+      state.role = "waiter";
+      saveState();
+      switchTab("pos");
+      renderAll();
+    } else {
+      const pin = prompt("Owner PIN નાખો (Default: 1234):");
+      if (pin === state.ownerPin) {
+        state.role = "owner";
+        saveState();
+        renderAll();
+      } else if (pin !== null) {
+        alert("ખોટો PIN!");
+      }
+    }
+  }
+
+  function togglePerm(key) {
+    state.permissions[key] = !state.permissions[key];
+    saveState();
+    renderPermissions();
+    renderAll();
+  }
+
+  function saveOwnerPin() {
+    const val = document.getElementById("ownerPinInput").value.trim();
+    if (val.length < 4) { alert("ઓછામાં ઓછા 4 અંકનો PIN રાખો."); return; }
+    state.ownerPin = val;
+    saveState();
+    alert("Owner PIN સેવ થઈ ગયો.");
+  }
+
+  function saveSheetUrl() {
+    const val = document.getElementById("sheetUrlInput").value.trim();
+    state.sheetUrl = val;
+    saveState();
+    alert("Google Sheet Web App URL સેવ થઈ ગઈ.");
+  }
+
+  function getActiveCart() {
+    if (!state.carts[state.selectedTable]) state.carts[state.selectedTable] = [];
+    return state.carts[state.selectedTable];
+  }
+
+  function addToCart(itemId) {
+    if (state.role === "waiter" && !state.permissions.allowOrder) {
+      alert("Owner દ્વારા ઓર્ડર લેવાનું બંધ (OFF) કરવામાં આવ્યું છે.");
+      return;
+    }
+    const numId = Number(itemId);
+    const item = state.menu.find(m => Number(m.id) === numId);
+    if (!item) return;
+    const cart = getActiveCart();
+    const existing = cart.find(c => Number(c.id) === numId);
+    if (existing) existing.qty = Number(existing.qty) + 1;
+    else cart.push({ id: numId, name: item.name, price: Number(item.price), qty: 1 });
+    saveState();
+    renderMenu();
+    renderCart();
+    renderTables();
+  }
+
+  function changeQty(itemId, delta) {
+    if (state.role === "waiter" && !state.permissions.allowCancelEdit) {
+      alert("Owner દ્વારા આઈટમ કેન્સલ/ફેરફાર બંધ (OFF) કરવામાં આવ્યું છે.");
+      return;
+    }
+    const numId = Number(itemId);
+    const cart = getActiveCart();
+    const idx = cart.findIndex(c => Number(c.id) === numId);
+    if (idx === -1) return;
+    cart[idx].qty = Number(cart[idx].qty) + Number(delta);
+    if (cart[idx].qty <= 0) cart.splice(idx, 1);
+    saveState();
+    renderMenu();
+    renderCart();
+    renderTables();
+  }
+
+  function clearCurrentCart() {
+    if (state.role === "waiter" && !state.permissions.allowCancelEdit) {
+      alert("Owner દ્વારા ઓર્ડર કેન્સલ કરવાનું બંધ (OFF) કરવામાં આવ્યું છે.");
+      return;
+    }
+    if (!getActiveCart().length) return;
+    if (!confirm("આ ટેબલનો ઓર્ડર કેન્સલ કરવો છે?")) return;
+    state.carts[state.selectedTable] = [];
+    saveState();
+    renderMenu();
+    renderCart();
+    renderTables();
+  }
+
+  function sendKitchenKot() {
+    if (state.role === "waiter" && !state.permissions.allowKot) {
+      alert("Owner દ્વારા KOT સેન્ડ કરવાનું બંધ (OFF) કરવામાં આવ્યું છે.");
+      return;
+    }
+    const cart = getActiveCart();
+    if (!cart.length) { alert("ઓર્ડર ખાલી છે!"); return; }
+
+    const kotNo = "KOT-" + Math.floor(1000 + Math.random() * 9000);
+    const timeStr = new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" });
+    const itemsText = cart.map(c => `${c.name} x${c.qty}`).join(", ");
+    const totalAmt = cart.reduce((s, c) => s + Number(c.price) * Number(c.qty), 0);
+
+    const kotRecord = {
+      kotNo,
+      time: timeStr,
+      table: state.selectedTable,
+      orderType: state.orderType,
+      items: itemsText,
+      itemsList: JSON.parse(JSON.stringify(cart)),
+      total: totalAmt
+    };
+
+    state.activeKots.unshift(kotRecord);
+    if (state.activeKots.length > 30) state.activeKots.length = 30;
+    saveState();
+    renderKitchenKots();
+
+    playTvTingBell();
+    setTimeout(() => speakAnnouncement(buildKotAnnouncement(state.selectedTable, cart)), 400);
+
+    sendToTajSheet({
+      recordType: "KOT",
+      billNo: kotNo,
+      orderType: state.orderType,
+      table: state.selectedTable,
+      items: itemsText,
+      total: totalAmt,
+      paymentMode: "KOT",
+      status: "KOT Sent"
+    });
+
+    pendingKotSlipData = kotRecord;
+    document.getElementById("kotModalDetails").innerHTML =
+      `<strong>Table:</strong> ${kotRecord.table} (${kotRecord.orderType})<br/><strong>Items:</strong> ${kotRecord.items}`;
+    document.getElementById("kotPrintModal").classList.remove("hidden");
+  }
+
+  function confirmKotPrint(shouldPrint) {
+    document.getElementById("kotPrintModal").classList.add("hidden");
+    if (shouldPrint && pendingKotSlipData) {
+      renderKotThermalSlip(pendingKotSlipData);
+      setTimeout(() => { window.print(); }, 200);
+    }
+    pendingKotSlipData = null;
+  }
+
+  function renderKotThermalSlip(kot) {
+    const rowsHtml = kot.itemsList.map(c =>
+      `<div style="display:flex;justify-content:space-between;margin:4px 0;font-size:14px;font-weight:bold;">
+        <span>${c.name}</span>
+        <span>x${c.qty}</span>
+      </div>`
+    ).join("");
+
+    document.getElementById("printArea").innerHTML = `
+      <div style="text-align:center;border-bottom:2px dashed #000;padding-bottom:4px;">
+        <strong style="font-size:16px;">*** KITCHEN KOT ***</strong><br/>
+        <strong>Taj Cafeteria - Diu</strong>
+      </div>
+      <div style="margin:6px 0;border-bottom:1px dashed #000;padding-bottom:4px;font-size:13px;">
+        <strong>KOT No:</strong> ${kot.kotNo}<br/>
+        <strong>Table:</strong> ${kot.table} (${kot.orderType})<br/>
+        <strong>Time:</strong> ${kot.time}
+      </div>
+      <div>${rowsHtml}</div>
+      <div style="border-top:2px dashed #000;margin-top:8px;padding-top:4px;text-align:center;font-size:12px;">
+        Prepare Immediately
+      </div>
+    `;
+  }
+
+  async function fetchLiveKotsFromSheet(manualClick) {
+    const url = (state.sheetUrl || "").trim();
+    const clockEl = document.getElementById("tvSyncClock");
+    if (!url || !url.startsWith("https://script.google.com/")) return;
+
+    try {
+      const res = await fetch(url + "?action=getKots&t=" + Date.now());
+      const data = await res.json();
+      const rows = Array.isArray(data) ? data : (data.kots || data.rows || []);
+      if (rows.length > 0) {
+        const latest = rows[0];
+        const sig = JSON.stringify(latest);
+        if (lastSeenKotSignature && sig !== lastSeenKotSignature) {
+          playTvTingBell();
+        }
+        lastSeenKotSignature = sig;
+
+        const mapped = rows.slice(0, 20).map((r, i) => ({
+          kotNo: r.billNo || r.kotNo || ("TV-" + (i + 1)),
+          time: r.time || r.dateTime || "",
+          table: r.table || "Table",
+          orderType: r.orderType || "Dine-In",
+          items: r.items || "",
+          itemsList: [],
+          total: r.total || 0
+        }));
+        if (mapped.length) {
+          state.activeKots = mapped;
+          renderKitchenKots();
+        }
+      }
+      if (clockEl) clockEl.textContent = "TV Live Sync Active • Last checked: " + new Date().toLocaleTimeString("en-IN");
+    } catch (e) {
+      if (clockEl) clockEl.textContent = "Local KOT Mode Active • Last checked: " + new Date().toLocaleTimeString("en-IN");
+      if (manualClick) renderKitchenKots();
+    }
+  }
+
+  function markKotDone(index) {
+    state.activeKots.splice(index, 1);
+    saveState();
+    renderKitchenKots();
+  }
+
+  function clearAllKitchenKots() {
+    if (!confirm("કિચન સ્ક્રીન પરના બધા પૂરા થયેલા KOT સાફ કરવા છે?")) return;
+    state.activeKots = [];
+    saveState();
+    renderKitchenKots();
+  }
+
+  function renderKitchenKots() {
+    const grid = document.getElementById("kitchenKotGrid");
+    if (!grid) return;
+    if (!state.activeKots || !state.activeKots.length) {
+      grid.innerHTML = `<p style="color:var(--muted); font-size:15px;">હાલમાં કોઈ નવો KOT ઓર્ડર નથી. ઓર્ડર આવતા જ અહીં દેખાશે અને "ટિન-ટિન" અવાજ આવશે.</p>`;
+      return;
+    }
+    grid.innerHTML = state.activeKots.map((k, idx) => `
+      <div class="kot-ticket ${idx === 0 ? 'new-flash' : ''}">
+        <div class="kot-ticket-head">
+          <span class="kot-ticket-table">${k.table}</span>
+          <span class="badge badge-ok">${k.orderType} • ${k.time || k.kotNo}</span>
+        </div>
+        <div class="kot-ticket-items">${k.items.split(",").map(s => "• " + s.trim()).join("<br/>")}</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px;">
+          <span style="font-size:12px; color:var(--muted);">${k.kotNo}</span>
+          <button class="btn btn-success btn-sm" onclick="markKotDone(${idx})">Done</button>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  async function sendToTajSheet(payload) {
+    const url = (state.sheetUrl || "").trim();
+    const badge = document.getElementById("syncStatus");
+    if (!url || !url.startsWith("https://script.google.com/")) {
+      badge.className = "badge badge-err";
+      badge.textContent = "Sheet: Invalid URL";
+      return false;
+    }
+    badge.className = "badge badge-warn";
+    badge.textContent = "Sheet: Sending...";
+    try {
+      await fetch(url, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+      badge.className = "badge badge-ok";
+      badge.textContent = "Sheet: Sent";
+      return true;
+    } catch (err) {
+      badge.className = "badge badge-err";
+      badge.textContent = "Sheet: Offline";
+      return false;
+    }
+  }
+
+  async function testGoogleSheetConnection() {
+    const ok = await sendToTajSheet({
+      recordType: "TEST",
+      orderType: "System Test",
+      table: "Laptop Check",
+      items: "Connection Test x1",
+      total: 0,
+      paymentMode: "Test",
+      status: "Test OK"
+    });
+    if (ok) alert("ટેસ્ટ ડેટા Google Sheet ને મોકલી દેવાયો છે.");
+  }
+
+  async function completeAndPrintBill() {
+    if (state.role === "waiter" && !state.permissions.allowPrint) {
+      alert("Owner દ્વારા બિલ પ્રિન્ટ બંધ (OFF) કરવામાં આવ્યું છે.");
+      return;
+    }
+    const cart = getActiveCart();
+    if (!cart.length) { alert("ઓર્ડર ખાલી છે!"); return; }
+
+    const total = cart.reduce((s, c) => s + Number(c.price) * Number(c.qty), 0);
+    const payment = document.getElementById("paymentModeSelect").value;
+    const billNo = "BILL-" + Math.floor(100000 + Math.random() * 900000);
+    const dateStr = new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+    const itemsSummary = cart.map(c => `${c.name} x${c.qty}`).join(" | ");
+
+    const billObj = {
+      billNo,
+      dateTime: dateStr,
+      orderType: state.orderType,
+      table: state.selectedTable,
+      items: itemsSummary,
+      cartSnapshot: JSON.parse(JSON.stringify(cart)),
+      total,
+      paymentMode: payment,
+      synced: false
+    };
+
+    renderThermalReceipt(billObj);
+
+    const sent = await sendToTajSheet({
+      recordType: "SALE",
+      billNo: billObj.billNo,
+      orderType: billObj.orderType,
+      table: billObj.table,
+      items: billObj.items,
+      total: billObj.total,
+      paymentMode: billObj.paymentMode,
+      status: "Paid"
+    });
+    billObj.synced = sent;
+
+    state.bills.unshift(billObj);
+    state.carts[state.selectedTable] = [];
+    saveState();
+    renderAll();
+
+    speakAnnouncement(buildBillAnnouncement(total, payment));
+    setTimeout(() => { window.print(); }, 250);
+  }
+
+  function renderThermalReceipt(bill) {
+    const rowsHtml = bill.cartSnapshot.map(c =>
+      `<div style="display:flex;justify-content:space-between;margin:3px 0;">
+        <span>${c.name} x${c.qty}</span>
+        <span>₹${Number(c.price) * Number(c.qty)}</span>
+      </div>`
+    ).join("");
+
+    document.getElementById("printArea").innerHTML = `
+      <div style="text-align:center;border-bottom:1px dashed #000;padding-bottom:4px;">
+        <strong style="font-size:15px;">Taj Cafeteria</strong><br/>
+        Bunder Chowk, Near Hotel Jagat, Diu - 362520<br/>
+        Mob: 9725772252
+      </div>
+      <div style="margin:5px 0;border-bottom:1px dashed #000;padding-bottom:4px;">
+        Bill: ${bill.billNo}<br/>
+        Date: ${bill.dateTime}<br/>
+        Order: ${bill.table} (${bill.orderType})<br/>
+        Mode: ${bill.paymentMode}
+      </div>
+      <div>${rowsHtml}</div>
+      <div style="border-top:1px dashed #000;margin-top:5px;padding-top:4px;display:flex;justify-content:space-between;font-weight:bold;font-size:14px;">
+        <span>TOTAL:</span>
+        <span>₹${bill.total}</span>
+      </div>
+      <div style="text-align:center;margin-top:8px;">Thank You! Visit Again</div>
+    `;
+  }
+
+  async function retryUnsyncedBills() {
+    let count = 0;
+    for (const b of state.bills) {
+      if (!b.synced) {
+        const ok = await sendToTajSheet({
+          recordType: "SALE",
+          billNo: b.billNo,
+          orderType: b.orderType,
+          table: b.table,
+          items: b.items,
+          total: b.total,
+          paymentMode: b.paymentMode,
+          status: "Paid"
+        });
+        if (ok) { b.synced = true; count++; }
+      }
+    }
+    saveState();
+    renderHistory();
+    alert(count + " બાકી બિલ Google Sheet માં મોકલવામાં આવ્યા.");
+  }
+
+  let uploadedBillDataUrl = "";
+
+  function handleBillImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      uploadedBillDataUrl = e.target.result;
+      const img = document.getElementById("billPreviewImg");
+      img.src = uploadedBillDataUrl;
+      img.style.display = "block";
+      document.getElementById("purDate").value = new Date().toLocaleDateString("en-IN");
+      document.getElementById("ocrProgressBox").textContent = "ફોટો અપલોડ થઈ ગયો છે. હવે 'Auto Scan Bill' દબાવો...";
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function loadTesseractScript() {
+    return new Promise((resolve, reject) => {
+      if (window.Tesseract) return resolve();
+      const s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+
+  async function runOcrOnUploadedBill() {
+    if (!uploadedBillDataUrl) {
+      alert("પહેલાં બિલનો ફોટો અપલોડ કરો.");
+      return;
+    }
+    const prog = document.getElementById("ocrProgressBox");
+    prog.textContent = "ગુજરાતી અને અંગ્રેજી લખાણ સ્કેન થઈ રહ્યું છે...";
+    try {
+      await loadTesseractScript();
+      const worker = await Tesseract.createWorker(["guj", "eng"]);
+      const ret = await worker.recognize(uploadedBillDataUrl);
+      await worker.terminate();
+
+      const text = ret.data.text || "";
+      document.getElementById("ocrRawText").value = text;
+      parseExtractedBillText(text);
+      prog.textContent = "સ્કેન પૂર્ણ! નીચે વિગત ચકાસીને 'Save Purchase Bill' દબાવો.";
+    } catch (err) {
+      prog.textContent = "OCR સ્કેનમાં મુશ્કેલી આવી, તમે જાતે વિગત ભરીને Save કરી શકો છો.";
+    }
+  }
+
+  function parseExtractedBillText(text) {
+    const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    if (lines.length && !document.getElementById("purSupplier").value) {
+      document.getElementById("purSupplier").value = lines[0].slice(0, 45);
+    }
+    const dateMatch = text.match(/(\d{1,2}[\/\-\.]\d{1,2}[\/\-\.]\d{2,4})/);
+    if (dateMatch) document.getElementById("purDate").value = dateMatch[1];
+
+    let detectedTotal = 0;
+    const totalLine = lines.find(l => /(total|કુલ|કુલ્લ|grand|net|amount|રકમ)/i.test(l));
+    if (totalLine) {
+      const nums = totalLine.match(/\d+(\.\d{1,2})?/g);
+      if (nums) detectedTotal = Math.max(...nums.map(Number));
+    }
+    if (!detectedTotal) {
+      const allNums = (text.match(/\d+(\.\d{1,2})?/g) || []).map(Number).filter(n => n > 0 && n < 500000);
+      if (allNums.length) detectedTotal = Math.max(...allNums);
+    }
+    if (detectedTotal) document.getElementById("purTotal").value = detectedTotal;
+    document.getElementById("purItems").value = lines.slice(1, 8).join(", ");
+  }
+
+  async function savePurchaseBill() {
+    const date = document.getElementById("purDate").value.trim() || new Date().toLocaleDateString("en-IN");
+    const supplier = document.getElementById("purSupplier").value.trim() || "Unknown Supplier";
+    const items = document.getElementById("purItems").value.trim() || "-";
+    const total = Number(document.getElementById("purTotal").value || 0);
+    const payment = document.getElementById("purPayment").value;
+
+    if (!total) { alert("કુલ બિલ રકમ (Total ₹) નાખો."); return; }
+
+    const ok = await sendToTajSheet({
+      recordType: "PURCHASE",
+      orderType: "Purchase Bill",
+      table: supplier,
+      items: items,
+      total: total,
+      paymentMode: payment,
+      status: "Purchase Saved (" + date + ")"
+    });
+
+    state.purchases.unshift({ date, supplier, items, total, payment, synced: ok });
+    saveState();
+    renderPurchases();
+    alert("ખરીદ બિલ સેવ થઈ ગયું અને Google Sheet માં મોકલી દેવાયું!");
+  }
+
+  function compressImageFile(file, callback) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement("canvas");
+        const maxW = 240;
+        const scale = Math.min(1, maxW / img.width);
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        callback(canvas.toDataURL("image/jpeg", 0.72));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function addMenuItem() {
+    const name = document.getElementById("newMenuName").value.trim();
+    const price = Number(document.getElementById("newMenuPrice").value);
+    const cat = document.getElementById("newMenuCat").value;
+    const photoInput = document.getElementById("newMenuPhoto");
+    if (!name || price <= 0) { alert("આઈટમનું નામ અને સાચી કિંમત નાખો."); return; }
+
+    const finishAdd = (photoData) => {
+      state.menu.unshift({ id: Date.now(), name, price, cat, photo: photoData || "" });
+      document.getElementById("newMenuName").value = "";
+      document.getElementById("newMenuPrice").value = "";
+      photoInput.value = "";
+      saveState();
+      renderAll();
+    };
+
+    if (photoInput.files && photoInput.files[0]) compressImageFile(photoInput.files[0], finishAdd);
+    else finishAdd("");
+  }
+
+  function updateItemPhoto(id, inputEl) {
+    if (!inputEl.files || !inputEl.files[0]) return;
+    compressImageFile(inputEl.files[0], (dataUrl) => {
+      const item = state.menu.find(m => Number(m.id) === Number(id));
+      if (item) {
+        item.photo = dataUrl;
+        saveState();
+        renderAll();
+      }
+    });
+  }
+
+  function deleteMenuItem(id) {
+    state.menu = state.menu.filter(m => Number(m.id) !== Number(id));
+    saveState();
+    renderAll();
+  }
+
+  function exportBillsCsv() {
+    const rows = [["BillNo", "DateTime", "OrderType", "Table", "Items", "Total", "PaymentMode"]];
+    state.bills.forEach(b => rows.push([b.billNo, b.dateTime, b.orderType, b.table, b.items, b.total, b.paymentMode]));
+    const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "Taj_Cafeteria_Sales.csv";
+    a.click();
+  }
+
+  function renderTables() {
+    const box = document.getElementById("tablesList");
+    box.innerHTML = state.tables.map(t => {
+      const count = (state.carts[t] || []).reduce((s, c) => s + Number(c.qty), 0);
+      return `<button class="table-chip ${state.selectedTable === t ? 'active' : ''} ${count > 0 ? 'has-items' : ''}" onclick="selectTable('${t}')">${t}${count > 0 ? ' (' + count + ')' : ''}</button>`;
+    }).join("");
+    document.getElementById("activeTableLabel").textContent = state.selectedTable;
+    document.getElementById("orderTypeSelect").value = state.orderType;
+    document.getElementById("voiceLangSelect").value = state.voiceLang || "gu-IN";
+    document.getElementById("printerDriverSelect").value = state.printerProfile || "58mm";
+  }
+
+  function selectTable(t) {
+    state.selectedTable = t;
+    if (t === "Parcel") state.orderType = "Parcel";
+    saveState();
+    renderTables();
+    renderMenu();
+    renderCart();
+  }
+
+  function renderMenu() {
+    const q = (document.getElementById("menuSearch").value || "").toLowerCase();
+    const filtered = state.menu.filter(m => m.name.toLowerCase().includes(q));
+    document.getElementById("menuCountBadge").textContent = filtered.length;
+    const canAdd = state.role === "owner" || state.permissions.allowOrder;
+    const canEdit = state.role === "owner" || state.permissions.allowCancelEdit;
+    const cart = getActiveCart();
+
+    document.getElementById("menuGrid").innerHTML = filtered.map(m => {
+      const mId = Number(m.id);
+      const inCartItem = cart.find(c => Number(c.id) === mId);
+      const qty = inCartItem ? Number(inCartItem.qty) : 0;
+      const imgSrc = m.photo ? m.photo : makeCategorySvg(m.cat || "combo", m.name);
+
+      const actionHtml = qty > 0
+        ? `<div class="qty-box">
+             ${canEdit ? `<button class="btn btn-danger btn-qty" onclick="changeQty(${mId}, -1)">-</button>` : ""}
+             <strong style="min-width:20px; text-align:center;">${qty}</strong>
+             ${canAdd ? `<button class="btn btn-success btn-qty" onclick="addToCart(${mId})">+</button>` : ""}
+           </div>`
+        : `<button class="btn btn-gold btn-sm" ${canAdd ? "" : "disabled"} onclick="addToCart(${mId})">+ ADD</button>`;
+
+      return `
+        <div class="menu-card ${qty > 0 ? 'in-cart' : ''}">
+          <div class="menu-thumb">
+            <img src="${imgSrc}" alt="${m.name}" />
+          </div>
+          <strong>${m.name}</strong>
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:4px;">
+            <span class="menu-price">₹${m.price}</span>
+            ${actionHtml}
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function renderCart() {
+    const cart = getActiveCart();
+    const box = document.getElementById("cartList");
+    const canEdit = state.role === "owner" || state.permissions.allowCancelEdit;
+    const canAdd = state.role === "owner" || state.permissions.allowOrder;
+
+    if (!cart.length) {
+      box.innerHTML = `<p style="color:var(--muted); font-size:13px;">હજુ કોઈ આઈટમ પસંદ કરી નથી.</p>`;
+      document.getElementById("cartTotal").textContent = "₹0";
+      return;
+    }
+
+    let total = 0;
+    box.innerHTML = cart.map(c => {
+      const cId = Number(c.id);
+      const sub = Number(c.price) * Number(c.qty);
+      total += sub;
+      return `
+        <div class="cart-row">
+          <div style="flex:1;">
+            <div><strong>${c.name}</strong></div>
+            <div style="font-size:12px; color:var(--muted);">₹${c.price} x ${c.qty} = ₹${sub}</div>
+          </div>
+          <div class="qty-box">
+            ${canEdit ? `<button class="btn btn-qty" onclick="changeQty(${cId}, -1)">-</button>` : ""}
+            <strong style="min-width:22px; text-align:center;">${c.qty}</strong>
+            ${canAdd ? `<button class="btn btn-qty" onclick="changeQty(${cId}, 1)">+</button>` : ""}
+            ${canEdit ? `<button class="btn btn-danger btn-sm" onclick="changeQty(${cId}, -999)">X</button>` : ""}
+          </div>
+        </div>
+      `;
+    }).join("");
+    document.getElementById("cartTotal").textContent = "₹" + total;
+  }
+
+  function renderPermissions() {
+    const keys = ["allowOrder", "allowCancelEdit", "allowKot", "allowPrint", "allowSettings"];
+    keys.forEach(k => {
+      const btn = document.getElementById("tog-" + k);
+      if (!btn) return;
+      const on = !!state.permissions[k];
+      btn.textContent = on ? "ON" : "OFF";
+      btn.className = "btn btn-sm " + (on ? "btn-success" : "btn-danger");
+    });
+    document.getElementById("ownerPinInput").value = state.ownerPin;
+    document.getElementById("sheetUrlInput").value = state.sheetUrl;
+    document.getElementById("themeSelect").value = state.themeChoice || "auto";
+    document.getElementById("boxDesignSelect").value = state.boxDesign || "default";
+  }
+
+  function renderRoleRestrictions() {
+    const isWaiter = state.role === "waiter";
+    const badge = document.getElementById("roleBadge");
+    const switchBtn = document.getElementById("switchRoleBtn");
+    if (isWaiter) {
+      badge.className = "badge badge-warn";
+      badge.textContent = "MODE: WAITER";
+      switchBtn.textContent = "Unlock Owner";
+    } else {
+      badge.className = "badge badge-ok";
+      badge.textContent = "MODE: OWNER";
+      switchBtn.textContent = "Waiter View";
+    }
+
+    document.getElementById("btnClearCart").classList.toggle("hidden", isWaiter && !state.permissions.allowCancelEdit);
+    document.getElementById("btnSendKot").classList.toggle("hidden", isWaiter && !state.permissions.allowKot);
+    document.getElementById("btnPrintBill").classList.toggle("hidden", isWaiter && !state.permissions.allowPrint);
+    document.getElementById("tab-settings").classList.toggle("hidden", isWaiter && !state.permissions.allowSettings);
+  }
+
+  function renderHistory() {
+    const body = document.getElementById("salesHistoryBody");
+    body.innerHTML = state.bills.map(b => `
+      <tr>
+        <td>${b.billNo}</td>
+        <td>${b.dateTime}</td>
+        <td>${b.table} (${b.orderType})</td>
+        <td>${b.items}</td>
+        <td>₹${b.total}</td>
+        <td>${b.paymentMode}</td>
+        <td>${b.synced ? '<span class="badge badge-ok">Sent</span>' : '<span class="badge badge-warn">Pending</span>'}</td>
+      </tr>
+    `).join("") || `<tr><td colspan="7" style="color:var(--muted);">હજુ કોઈ બિલ નથી.</td></tr>`;
+  }
+
+  function renderPurchases() {
+    const body = document.getElementById("purchaseTableBody");
+    body.innerHTML = state.purchases.map(p => `
+      <tr>
+        <td>${p.date}</td>
+        <td>${p.supplier}</td>
+        <td>${p.items}</td>
+        <td>₹${p.total}</td>
+        <td>${p.payment}</td>
+        <td>${p.synced ? '<span class="badge badge-ok">Sent</span>' : '<span class="badge badge-warn">Local</span>'}</td>
+      </tr>
+    `).join("") || `<tr><td colspan="6" style="color:var(--muted);">હજુ કોઈ ખરીદ બિલ સ્કેન કર્યું નથી.</td></tr>`;
+  }
+
+  function renderManageMenu() {
+    const box = document.getElementById("manageMenuList");
+    box.innerHTML = state.menu.map(m => `
+      <div class="list-item">
+        <span style="flex:1;"><strong>${m.name}</strong> — ₹${m.price}</span>
+        <label class="btn btn-info btn-sm" style="cursor:pointer; margin:0;">
+          Photo
+          <input type="file" accept="image/*" style="display:none;" onchange="updateItemPhoto(${m.id}, this)" />
+        </label>
+        <button class="btn btn-danger btn-sm" onclick="deleteMenuItem(${m.id})">Delete</button>
+      </div>
+    `).join("");
+  }
+
+  function renderAll() {
+    applyVisualTheme();
+    renderTables();
+    renderMenu();
+    renderCart();
+    renderKitchenKots();
+    renderPermissions();
+    renderRoleRestrictions();
+    renderHistory();
+    renderPurchases();
+    renderManageMenu();
+  }
+
+  (function initUrlAndTvAutoRefresh() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("mode") === "waiter") {
+      state.role = "waiter";
+      saveState();
+    }
+    renderAll();
+    if (params.get("mode") === "kitchen" || params.get("tab") === "kitchen") {
+      switchTab("kitchen");
+    }
+    setInterval(() => {
+      const kitchenView = document.getElementById("view-kitchen");
+      if (kitchenView && !kitchenView.classList.contains("hidden")) {
+        fetchLiveKotsFromSheet(false);
+      }
+    }, 4000);
+  })();
+</script>
+</body>
+</html>
